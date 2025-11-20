@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import { navigate } from './Router';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [password, setPassword] = useState('');

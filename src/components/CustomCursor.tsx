@@ -1,17 +1,23 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useIsMobile } from '../components/ui/use-mobile';
 
 export function CustomCursor() {
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-  const [circlePosition, setCirclePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return null;
+  }
+  const circleRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const cursorPosition = useRef({ x: 0, y: 0 });
+  const circlePosition = useRef({ x: 0, y: 0 });
   const animationFrameRef = useRef<number>();
+  const isHovering = useRef(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Dot follows cursor immediately
-      setCursorPosition({ x: e.clientX, y: e.clientY });
+      cursorPosition.current = { x: e.clientX, y: e.clientY };
 
-      // Check for hover state
       const target = e.target as HTMLElement;
       const isInteractive =
         target.tagName === 'BUTTON' ||
@@ -20,20 +26,30 @@ export function CustomCursor() {
         target.closest('a') !== null ||
         target.classList.contains('cursor-pointer');
 
-      setIsHovering(isInteractive);
+      isHovering.current = isInteractive;
     };
 
-    // Smooth animation for circle following the dot
     const animate = () => {
-      setCirclePosition((prev) => ({
-        x: prev.x + (cursorPosition.x - prev.x) * 0.15,
-        y: prev.y + (cursorPosition.y - prev.y) * 0.15,
-      }));
+      // Move dot
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${cursorPosition.current.x - 4}px, ${cursorPosition.current.y - 4}px) scale(${isHovering.current ? 1.5 : 1})`;
+      }
+
+      // Move circle
+      const dx = cursorPosition.current.x - circlePosition.current.x;
+      const dy = cursorPosition.current.y - circlePosition.current.y;
+      circlePosition.current.x += dx * 0.2;
+      circlePosition.current.y += dy * 0.2;
+
+      if (circleRef.current) {
+        circleRef.current.style.transform = `translate(${circlePosition.current.x - 20}px, ${circlePosition.current.y - 20}px) scale(${isHovering.current ? 1.5 : 1})`;
+      }
+
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    animationFrameRef.current = requestAnimationFrame(animate);
     window.addEventListener('mousemove', handleMouseMove);
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -41,37 +57,24 @@ export function CustomCursor() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [cursorPosition.x, cursorPosition.y]);
+  }, []);
 
   return (
     <>
-      {/* Hide default cursor */}
       <style>{`
         * {
           cursor: none !important;
         }
       `}</style>
-
-      {/* Circle - follows with delay, centered on the dot */}
       <div
-        className="fixed pointer-events-none z-[1000] hidden md:block transition-transform duration-200"
-        style={{
-          left: `${circlePosition.x}px`,
-          top: `${circlePosition.y}px`,
-          transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-        }}
+        ref={circleRef}
+        className="fixed pointer-events-none z-[1000] transition-transform duration-200"
       >
         <div className="w-10 h-10 border-2 border-white/40 rounded-full" />
       </div>
-
-      {/* Dot - follows cursor instantly */}
       <div
-        className="fixed pointer-events-none z-[1001] hidden md:block transition-transform duration-100"
-        style={{
-          left: `${cursorPosition.x}px`,
-          top: `${cursorPosition.y}px`,
-          transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-        }}
+        ref={dotRef}
+        className="fixed pointer-events-none z-[1001] transition-transform duration-100"
       >
         <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
       </div>

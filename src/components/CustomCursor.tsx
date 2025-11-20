@@ -7,6 +7,7 @@ export function CustomCursor() {
   if (isMobile) {
     return null;
   }
+  
   const circleRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
   const cursorPosition = useRef({ x: 0, y: 0 });
@@ -38,8 +39,8 @@ export function CustomCursor() {
       // Move circle
       const dx = cursorPosition.current.x - circlePosition.current.x;
       const dy = cursorPosition.current.y - circlePosition.current.y;
-      circlePosition.current.x += dx * 0.2;
-      circlePosition.current.y += dy * 0.2;
+      circlePosition.current.x += dx * 0.15;
+      circlePosition.current.y += dy * 0.15;
 
       if (circleRef.current) {
         circleRef.current.style.transform = `translate(${circlePosition.current.x - 20}px, ${circlePosition.current.y - 20}px) scale(${isHovering.current ? 1.5 : 1})`;

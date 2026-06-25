@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Upload, X, Plus, Save, LogOut, Image as ImageIcon } from 'lucide-react';
 import { navigate } from '../App';
+import imageCompression from 'browser-image-compression';
 
 interface ProjectData {
   id: string;
@@ -15,7 +17,11 @@ interface ProjectData {
   description: string;
   role: string;
   year: string;
+  order: number;
   tags: string[];
+  audience: string;
+  objective: string;
+  decisions: string;
   challenge: string;
   solution: string;
   specs: {
@@ -24,7 +30,7 @@ interface ProjectData {
     grid: string;
     deliverables: string;
   };
-  gallery: string[];
+  gallery: { thumbnail: string; full: string }[];
 }
 
 export default function AdminUpload() {
@@ -40,7 +46,11 @@ export default function AdminUpload() {
     description: '',
     role: '',
     year: new Date().getFullYear().toString(),
+    order: 0,
     tags: [],
+    audience: '',
+    objective: '',
+    decisions: '',
     challenge: '',
     solution: '',
     specs: {
@@ -52,7 +62,6 @@ export default function AdminUpload() {
     gallery: [],
   });
   const [tagInput, setTagInput] = useState('');
-  const [galleryInput, setGalleryInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -63,7 +72,35 @@ export default function AdminUpload() {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'projects'), (snapshot) => {
-      const projectsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as ProjectData[];
+      const projectsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title || '',
+          label: data.label || '',
+          category: data.category || '',
+          tech: data.tech || '',
+          image: data.image || '',
+          size: data.size || 'wide',
+          description: data.description || '',
+          role: data.role || '',
+          year: data.year || new Date().getFullYear().toString(),
+          order: data.order || 0,
+          tags: data.tags || [],
+          audience: data.audience || '',
+          objective: data.objective || '',
+          decisions: data.decisions || '',
+          challenge: data.challenge || '',
+          solution: data.solution || '',
+          specs: {
+            primaryColor: data.specs?.primaryColor || '',
+            typography: data.specs?.typography || '',
+            grid: data.specs?.grid || '',
+            deliverables: data.specs?.deliverables || '',
+          },
+          gallery: data.gallery || [],
+        };
+      }) as ProjectData[];
       setProjects(projectsData);
     });
     return () => unsubscribe();
@@ -98,7 +135,11 @@ export default function AdminUpload() {
         description: '',
         role: '',
         year: new Date().getFullYear().toString(),
+        order: 0,
         tags: [],
+        audience: '',
+        objective: '',
+        decisions: '',
         challenge: '',
         solution: '',
         specs: {
@@ -134,25 +175,87 @@ export default function AdminUpload() {
     });
   };
 
-  const addGalleryImage = () => {
-    if (galleryInput.trim() && !currentProject.gallery.includes(galleryInput.trim())) {
-      setCurrentProject({
-        ...currentProject,
-        gallery: [...currentProject.gallery, galleryInput.trim()],
-      });
-      setGalleryInput('');
-    }
-  };
-
-  const removeGalleryImage = (url: string) => {
+  const removeGalleryImage = (imageUrl: string) => {
     setCurrentProject({
       ...currentProject,
-      gallery: currentProject.gallery.filter(g => g !== url),
+      gallery: currentProject.gallery.filter(g => g.full !== imageUrl),
     });
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const storageRef = ref(storage, `projects/${currentProject.id}/${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      setCurrentProject({ ...currentProject, image: downloadURL });
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+        const files = Array.from(e.target.files);
+        const galleryItems = await Promise.all(
+            files.map(async (file) => {
+                // Upload original image
+                const fullStorageRef = ref(storage, `projects/${currentProject.id}/gallery/${file.name}`);
+                await uploadBytes(fullStorageRef, file);
+                const fullUrl = await getDownloadURL(fullStorageRef);
+
+                // Create and upload thumbnail
+                const thumbOptions = {
+                    maxSizeMB: 0.1,
+                    maxWidthOrHeight: 512,
+                    useWebWorker: true,
+                };
+                const compressedFile = await imageCompression(file, thumbOptions);
+                const thumbStorageRef = ref(storage, `projects/${currentProject.id}/gallery/thumbnails/${file.name}`);
+                await uploadBytes(thumbStorageRef, compressedFile);
+                const thumbUrl = await getDownloadURL(thumbStorageRef);
+
+                return { full: fullUrl, thumbnail: thumbUrl };
+            })
+        );
+        setCurrentProject({ ...currentProject, gallery: [...currentProject.gallery, ...galleryItems] });
+    }
+  };
+
   const loadProjectForEditing = (project: ProjectData) => {
-    setCurrentProject(project);
+    setCurrentProject({
+      ...{
+        id: '',
+        title: '',
+        label: '',
+        category: '',
+        tech: '',
+        image: '',
+        size: 'wide',
+        description: '',
+        role: '',
+        year: new Date().getFullYear().toString(),
+        order: 0,
+        tags: [],
+        audience: '',
+        objective: '',
+        decisions: '',
+        challenge: '',
+        solution: '',
+        specs: {
+          primaryColor: '',
+          typography: '',
+          grid: '',
+          deliverables: '',
+        },
+        gallery: [],
+      },
+      ...project,
+      specs: {
+        primaryColor: project.specs?.primaryColor || '',
+        typography: project.specs?.typography || '',
+        grid: project.specs?.grid || '',
+        deliverables: project.specs?.deliverables || '',
+      }
+    });
     // Scroll to the top of the form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -169,7 +272,11 @@ export default function AdminUpload() {
       description: '',
       role: '',
       year: new Date().getFullYear().toString(),
+      order: 0,
       tags: [],
+      audience: '',
+      objective: '',
+      decisions: '',
       challenge: '',
       solution: '',
       specs: {
@@ -418,11 +525,74 @@ export default function AdminUpload() {
                   className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono text-sm focus:border-cyan-400/50 focus:outline-none transition-colors"
                   placeholder="https://images.unsplash.com/..."
                 />
+                <div className="mt-4">
+                  <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                    UPLOAD MAIN IMAGE
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleImageUpload}
+                    className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono focus:border-cyan-400/50 focus:outline-none transition-colors"
+                  />
+                </div>
                 {currentProject.image && (
                   <div className="mt-3 rounded-lg overflow-hidden border border-white/10">
                     <img src={currentProject.image} alt="Preview" className="w-full h-48 object-cover" />
                   </div>
                 )}
+              </div>
+
+              {/* Order */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  ORDER
+                </label>
+                <input
+                  type="number"
+                  value={currentProject.order}
+                  onChange={(e) => setCurrentProject({ ...currentProject, order: parseInt(e.target.value) })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono focus:border-cyan-400/50 focus:outline-none transition-colors"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Audience */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  AUDIENCE
+                </label>
+                <textarea
+                  value={currentProject.audience}
+                  onChange={(e) => setCurrentProject({ ...currentProject, audience: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors h-24"
+                  placeholder="Describe the target audience..."
+                />
+              </div>
+
+              {/* Objective */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  OBJECTIVE
+                </label>
+                <textarea
+                  value={currentProject.objective}
+                  onChange={(e) => setCurrentProject({ ...currentProject, objective: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors h-24"
+                  placeholder="Describe the project objective..."
+                />
+              </div>
+
+              {/* Decisions */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  DECISIONS
+                </label>
+                <textarea
+                  value={currentProject.decisions}
+                  onChange={(e) => setCurrentProject({ ...currentProject, decisions: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors h-24"
+                  placeholder="Describe the key decisions made..."
+                />
               </div>
             </div>
 
@@ -603,33 +773,28 @@ export default function AdminUpload() {
                 GALLERY IMAGES
               </h2>
 
-              <div className="flex gap-2 mb-4">
+              <div className="mt-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  UPLOAD GALLERY IMAGES
+                </label>
                 <input
-                  type="text"
-                  value={galleryInput}
-                  onChange={(e) => setGalleryInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGalleryImage())}
-                  className="flex-1 bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono text-sm focus:border-cyan-400/50 focus:outline-none transition-colors"
-                  placeholder="Image URL..."
+                  type="file"
+                  multiple
+                  onChange={handleGalleryUpload}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono focus:border-cyan-400/50 focus:outline-none transition-colors"
                 />
-                <button
-                  onClick={addGalleryImage}
-                  className="px-4 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/30 hover:border-cyan-400/50 rounded text-cyan-400 transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {currentProject.gallery.map((url, index) => (
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                {currentProject.gallery.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={url}
+                      src={image.thumbnail}
                       alt={`Gallery ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg border border-white/10"
                     />
                     <button
-                      onClick={() => removeGalleryImage(url)}
+                      onClick={() => removeGalleryImage(image.full)}
                       className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4 text-white" />

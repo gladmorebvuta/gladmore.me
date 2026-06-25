@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import AdminUpload from './pages/AdminUpload';
 import PortfolioPage from './pages/PortfolioPage';
+
+const AdminUpload = lazy(() => import('./pages/AdminUpload'));
 
 export function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -26,7 +27,9 @@ export default function App() {
   if (currentPath === '/admin/upload') {
     return (
       <ProtectedRoute>
-        <AdminUpload />
+        <Suspense fallback={<div>Loading...</div>}>
+          <AdminUpload />
+        </Suspense>
       </ProtectedRoute>
     );
   }

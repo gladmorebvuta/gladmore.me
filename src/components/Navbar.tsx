@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Home, Briefcase, User, Mail } from 'lucide-react';
+import { Home, Briefcase, User, Mail, FileText } from 'lucide-react';
 
 interface NavbarProps {
   onNavigate: (section: string) => void;
@@ -11,6 +11,7 @@ export function Navbar({ onNavigate, activeSection }: NavbarProps) {
     { icon: Home, label: 'Home', id: 'hero' },
     { icon: Briefcase, label: 'Work', id: 'work' },
     { icon: User, label: 'About', id: 'about' },
+    { icon: FileText, label: 'Resume', id: 'resume' },
     { icon: Mail, label: 'Contact', id: 'contact' },
   ];
 

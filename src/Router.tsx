@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import App from "./App";
 import AdminUpload from "./pages/AdminUpload";
+import { ResumePage } from "./pages/ResumePage";
 
 export default function Router() {
   return (
@@ -13,6 +14,7 @@ export default function Router() {
           path="/admin/upload"
           element={<ProtectedRoute><AdminUpload /></ProtectedRoute>}
         />
+        <Route path="/resume" element={<ResumePage />} />
       </Routes>
     </BrowserRouter>
   );

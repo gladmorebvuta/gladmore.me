@@ -20,7 +20,7 @@ interface ProjectModalProps {
     challenge?: string;
     solution?: string;
     specs?: Record<string, string>;
-    gallery?: string[];
+    gallery?: { thumbnail: string; full: string }[];
   } | null;
 }
 
@@ -264,14 +264,14 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                       {'>'} VISUAL EVIDENCE
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {project.gallery.map((imageUrl, index) => (
+                      {project.gallery.map((image, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedImageIndex(index)}
                           className="group relative aspect-square rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300"
                         >
                           <ImageWithFallback
-                            src={imageUrl}
+                            src={image.thumbnail}
                             alt={`${project.title} - Gallery ${index + 1}`}
                             className="w-full h-full object-cover group-hover:opacity-70 transition-opacity duration-300"
                           />
@@ -342,7 +342,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                   onTouchEnd={onTouchEnd}
                 >
                   <ImageWithFallback
-                    src={project.gallery[selectedImageIndex]}
+                    src={project.gallery[selectedImageIndex].full}
                     alt="Full size view"
                     className="max-h-screen w-auto object-contain rounded-lg border border-white/20"
                   />

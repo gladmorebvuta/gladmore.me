@@ -13,49 +13,61 @@ export function CustomCursor() {
 
   useEffect(() => {
     if (isMobile) return;
+
+    const animate = () => {
+      // Dot tracks the pointer 1:1 (instant, responsive)
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${cursorPosition.current.x - 4}px, ${cursorPosition.current.y - 4}px) scale(${isHovering.current ? 1.5 : 1})`;
+      }
+
+      // Ring follows with a tight trail
+      const dx = cursorPosition.current.x - circlePosition.current.x;
+      const dy = cursorPosition.current.y - circlePosition.current.y;
+      circlePosition.current.x += dx * 0.35;
+      circlePosition.current.y += dy * 0.35;
+
+      if (circleRef.current) {
+        circleRef.current.style.transform = `translate(${circlePosition.current.x - 20}px, ${circlePosition.current.y - 20}px) scale(${isHovering.current ? 1.5 : 1})`;
+      }
+
+      // Keep animating only until the ring has caught up; then sleep.
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        animationFrameRef.current = null;
+      }
+    };
+
+    const wake = () => {
+      if (animationFrameRef.current == null) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       cursorPosition.current = { x: e.clientX, y: e.clientY };
 
       const target = e.target as HTMLElement;
-      const isInteractive =
+      isHovering.current =
         target.tagName === 'BUTTON' ||
         target.tagName === 'A' ||
         target.closest('button') !== null ||
         target.closest('a') !== null ||
         target.classList.contains('cursor-pointer');
 
-      isHovering.current = isInteractive;
-    };
-
-    const animate = () => {
-      // Move dot
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${cursorPosition.current.x - 4}px, ${cursorPosition.current.y - 4}px) scale(${isHovering.current ? 1.5 : 1})`;
-      }
-
-      // Move circle
-      const dx = cursorPosition.current.x - circlePosition.current.x;
-      const dy = cursorPosition.current.y - circlePosition.current.y;
-      circlePosition.current.x += dx * 0.15;
-      circlePosition.current.y += dy * 0.15;
-
-      if (circleRef.current) {
-        circleRef.current.style.transform = `translate(${circlePosition.current.x - 20}px, ${circlePosition.current.y - 20}px) scale(${isHovering.current ? 1.5 : 1})`;
-      }
-
-      animationFrameRef.current = requestAnimationFrame(animate);
+      wake(); // resume the loop on movement
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
     };
-  }, []);
+  }, [isMobile]);
 
   if (isMobile) {
     return null;
@@ -70,13 +82,13 @@ export function CustomCursor() {
       `}</style>
       <div
         ref={circleRef}
-        className="fixed pointer-events-none z-[1000] transition-transform duration-200"
+        className="fixed top-0 left-0 pointer-events-none z-[1000] will-change-transform"
       >
         <div className="w-10 h-10 border-2 border-white/40 rounded-full" />
       </div>
       <div
         ref={dotRef}
-        className="fixed pointer-events-none z-[1001] transition-transform duration-100"
+        className="fixed top-0 left-0 pointer-events-none z-[1001] will-change-transform"
       >
         <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
       </div>

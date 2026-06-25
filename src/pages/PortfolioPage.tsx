@@ -147,7 +147,7 @@ export default function PortfolioPage() {
 
 
   return (
-    <div className="h-full bg-[#0a0a0a] text-white overflow-x-hidden relative pb-[5.5rem]">
+    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-clip relative pb-[5.5rem]">
 
       {!isMobile && <CustomCursor />}
       
@@ -158,31 +158,14 @@ export default function PortfolioPage() {
       <GridLines />
       
       {!isMobile && (
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-[1]">
-          <motion.div
-            className="absolute inset-0 rounded-full blur-[120px]"
-            style={{
-              background: `radial-gradient(ellipse at 30% 50%, rgba(236, 72, 153, 0.08) 0%,
-                                          rgba(6, 182, 212, 0.05) 25%,
-                                          rgba(124, 58, 237, 0.06) 50%,
-                                          transparent 100%)`,
-            }}
-            animate={
-              typeof window !== 'undefined' &&
-              window.matchMedia('(prefers-reduced-motion: no-preference)').matches
-                ? {
-                    y: [0, 40, -40, 0],
-                    scale: [1, 1.05, 0.95, 1],
-                  }
-                : {}
-            }
-            transition={{
-              duration: 40,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </div>
+        <div
+          className="fixed inset-0 pointer-events-none overflow-hidden z-[1]"
+          style={{
+            background: `radial-gradient(ellipse 80% 60% at 30% 40%, rgba(236, 72, 153, 0.10) 0%, transparent 60%),
+                         radial-gradient(ellipse 70% 60% at 75% 55%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
+                         radial-gradient(ellipse 60% 50% at 50% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 60%)`,
+          }}
+        />
       )}
 
       {!isMobile && (
@@ -229,18 +212,18 @@ export default function PortfolioPage() {
             >
               <motion.span
                 className="inline-block"
-                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.6, ease: 'easeOut' }}
               >
                 CREATIVE
               </motion.span>
               <br />
               <motion.span
                 className="inline-block"
-                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
               >
                 TECHNOLOGIST
               </motion.span>
@@ -377,10 +360,10 @@ export default function PortfolioPage() {
 
                   <div>
                     <p className="text-[#60a5fa] mb-2 tracking-[0.15em]" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem' }}>
-                      // 02 BUSINESS TECHNOLOGY
+                      // 02 AI-NATIVE ENGINEERING
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {['Firebase Studio', 'React / TypeScript', 'Gemini CLI / MCP Servers'].map((tech) => (
+                      {['Claude Code', 'Multi-Agent Orchestration', 'MCP Servers', 'Gemini CLI', 'React / TypeScript', 'Firebase'].map((tech) => (
                         <span 
                           key={tech}
                           className="bg-white/5 border border-white/10 hover:border-cyan-400/30 rounded-lg px-4 py-2 text-white/80 transition-all duration-300"
@@ -397,7 +380,7 @@ export default function PortfolioPage() {
                       // 03 SYSTEM INTELLIGENCE
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {['AI Context Engineering', 'System Design', 'Generative Design'].map((tech) => (
+                      {['AI Context Engineering', 'Agentic Workflows', 'Prompt & Pipeline Design', 'System Design'].map((tech) => (
                         <span 
                           key={tech}
                           className="bg-white/5 border border-white/10 hover:border-cyan-400/30 rounded-lg px-4 py-2 text-white/80 transition-all duration-300"
@@ -414,7 +397,7 @@ export default function PortfolioPage() {
                       // 04 STRATEGIC OPERATIONS
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {['Project Management', 'Client Consultation', 'Agile Roadmap Planning'].map((tech) => (
+                      {['Venture Building', 'Project Management', 'Client Consultation', 'Agile Roadmap Planning'].map((tech) => (
                         <span 
                           key={tech}
                           className="bg-white/5 border border-white/10 hover:border-cyan-400/30 rounded-lg px-4 py-2 text-white/80 transition-all duration-300"

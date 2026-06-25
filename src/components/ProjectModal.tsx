@@ -140,11 +140,20 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
 
               {/* A. THE HERO (Top) */}
               <div className="relative w-full aspect-video overflow-hidden">
-                <ImageWithFallback
-                  src={project.imageUrl}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                />
+                {project.liveUrl ? (
+                  <iframe
+                    src={project.liveUrl}
+                    className="w-full h-full border-0 pointer-events-auto"
+                    title={project.title}
+                    loading="lazy"
+                  />
+                ) : (
+                  <ImageWithFallback
+                    src={project.imageUrl}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
 
               {/* Title Bar (Below Image) */}
@@ -179,11 +188,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                     href={project.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-5 inline-flex items-center gap-2 px-5 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 hover:border-cyan-400/70 rounded-full text-cyan-400 font-sans font-semibold tracking-wide transition-all duration-300"
+                    className="mt-5 inline-flex items-center gap-2 max-w-full px-5 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 hover:border-cyan-400/70 rounded-full text-cyan-400 font-sans font-semibold tracking-wide transition-all duration-300 overflow-hidden"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>Visit Live Site</span>
-                    <span className="font-mono text-white/50 text-sm">
+                    <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap flex-shrink-0">Visit Live Site</span>
+                    <span className="font-mono text-white/50 text-sm truncate">
                       {project.liveUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                     </span>
                   </a>

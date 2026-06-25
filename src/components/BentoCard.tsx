@@ -45,13 +45,22 @@ export function BentoCard({
       onClick={onClick}
       className={`${sizeClasses[size]} group relative cursor-pointer overflow-hidden rounded-2xl`}
     >
-      {/* Background Image - Always visible, sharp and clear, with stable aspect ratio */}
+      {/* Background Image/Iframe - Always visible, sharp and clear, with stable aspect ratio */}
       <div className="absolute inset-0 bg-white/5">
-        <ImageWithFallback
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover"
-        />
+        {liveUrl ? (
+          <iframe
+            src={liveUrl}
+            className="w-full h-full border-0 pointer-events-none object-cover"
+            title={title}
+            loading="lazy"
+          />
+        ) : (
+          <ImageWithFallback
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        )}
       </div>
 
       {/* Glassmorphism Overlay - Slides down on hover */}
@@ -142,10 +151,10 @@ export function BentoCard({
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Visit ${title} live site`}
-          className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 backdrop-blur-xl border border-white/15 hover:border-cyan-400/60 rounded-full text-white/80 hover:text-cyan-400 transition-colors duration-300"
+          className="absolute top-6 right-6 z-20 flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/15 hover:border-cyan-400/60 rounded-full text-white/80 hover:text-cyan-400 transition-colors duration-300"
         >
-          <ExternalLink className="w-3.5 h-3.5" />
-          <span className="font-mono text-[10px] tracking-wider uppercase">Live</span>
+          <ExternalLink className="w-4 h-4" />
+          <span className="font-mono text-xs tracking-wider uppercase">Live</span>
         </a>
       )}
 

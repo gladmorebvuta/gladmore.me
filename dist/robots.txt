@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://gladmore.me/sitemap.xml

@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const ADMIN_PASSWORD = 'admin123';
-
   useEffect(() => {
-    const authenticated = sessionStorage.getItem('adminAuth') === 'true';
-    setIsAuthenticated(authenticated);
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('adminAuth', 'true');
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('Invalid password');
+    setError('');
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setEmail('');
+      setPassword('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      setError(errorMessage);
     }
   };
 
@@ -54,6 +59,20 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
                 <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  EMAIL
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono focus:border-cyan-400/50 focus:outline-none transition-colors"
+                  placeholder="Enter admin email"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
                   PASSWORD
                 </label>
                 <input
@@ -62,6 +81,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono focus:border-cyan-400/50 focus:outline-none transition-colors"
                   placeholder="Enter admin password"
+                  required
                 />
                 {error && (
                   <p className="mt-2 font-mono text-red-400 text-xs">{error}</p>

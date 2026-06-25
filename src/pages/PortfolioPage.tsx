@@ -43,6 +43,7 @@ export default function PortfolioPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [isMobile, setIsMobile] = useState(false);
+  const [glitch, setGlitch] = useState({ c: false, t: false });
 
   const heroRef = useRef<HTMLElement>(null);
   const workRef = useRef<HTMLElement>(null);
@@ -63,6 +64,30 @@ export default function PortfolioPage() {
     };
 
     fetchProjects();
+  }, []);
+
+  // Periodic RGB-split glitch on the hero headline (skips reduced-motion).
+  useEffect(() => {
+    if (typeof window !== 'undefined' &&
+        !window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+    let t1: ReturnType<typeof setTimeout>, t2: ReturnType<typeof setTimeout>, r1: ReturnType<typeof setTimeout>, r2: ReturnType<typeof setTimeout>;
+    const loopC = () => {
+      t1 = setTimeout(() => {
+        setGlitch((g) => ({ ...g, c: true }));
+        r1 = setTimeout(() => setGlitch((g) => ({ ...g, c: false })), 360);
+        loopC();
+      }, Math.random() * 4000 + 2500);
+    };
+    const loopT = () => {
+      t2 = setTimeout(() => {
+        setGlitch((g) => ({ ...g, t: true }));
+        r2 = setTimeout(() => setGlitch((g) => ({ ...g, t: false })), 360);
+        loopT();
+      }, Math.random() * 4000 + 3500);
+    };
+    loopC();
+    loopT();
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(r1); clearTimeout(r2); };
   }, []);
 
   const handleProjectClick = (project: Project) => {
@@ -149,6 +174,14 @@ export default function PortfolioPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-clip relative pb-[5.5rem]">
 
+      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+        <defs>
+          <filter id="alphaRed"><feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
+          <filter id="alphaGreen"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
+          <filter id="alphaBlue"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" /></filter>
+        </defs>
+      </svg>
+
       {!isMobile && <CustomCursor />}
       
       <div className="fixed inset-0 pointer-events-none z-[1] opacity-[0.015]" style={{
@@ -157,16 +190,26 @@ export default function PortfolioPage() {
       
       <GridLines />
       
-      {!isMobile && (
-        <div
-          className="fixed inset-0 pointer-events-none overflow-hidden z-[1]"
-          style={{
-            background: `radial-gradient(ellipse 80% 60% at 30% 40%, rgba(236, 72, 153, 0.10) 0%, transparent 60%),
-                         radial-gradient(ellipse 70% 60% at 75% 55%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
-                         radial-gradient(ellipse 60% 50% at 50% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 60%)`,
-          }}
-        />
-      )}
+      {/* Full-bleed ambient gradient field — anchored to every corner so colour
+          reaches edge-to-edge instead of pooling in the centre. Static = cheap. */}
+      <div
+        className="fixed inset-0 pointer-events-none z-[1]"
+        style={{
+          background: `
+            radial-gradient(60% 75% at 0% 0%, rgba(236, 72, 153, 0.14), transparent 72%),
+            radial-gradient(60% 75% at 100% 8%, rgba(6, 182, 212, 0.14), transparent 72%),
+            radial-gradient(75% 80% at 100% 100%, rgba(124, 58, 237, 0.16), transparent 72%),
+            radial-gradient(75% 80% at 0% 100%, rgba(16, 185, 129, 0.10), transparent 72%),
+            radial-gradient(55% 55% at 50% 45%, rgba(59, 130, 246, 0.08), transparent 80%)
+          `,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none z-[1] mix-blend-soft-light opacity-60"
+        style={{
+          background: `radial-gradient(120% 120% at 50% 0%, transparent 40%, rgba(0,0,0,0.55) 100%)`,
+        }}
+      />
 
       {!isMobile && (
         <Navbar 
@@ -211,21 +254,35 @@ export default function PortfolioPage() {
               }}
             >
               <motion.span
-                className="inline-block"
+                className="inline-block relative"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.6, ease: 'easeOut' }}
               >
-                CREATIVE
+                {glitch.c ? (
+                  <>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaRed)', mixBlendMode: 'lighten', animation: 'rgbGlitchRed 300ms linear infinite' }}>CREATIVE</span>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaGreen)', mixBlendMode: 'lighten', animation: 'rgbGlitchGreen 300ms linear infinite' }}>CREATIVE</span>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaBlue)', mixBlendMode: 'lighten', animation: 'rgbGlitchBlue 300ms linear infinite' }}>CREATIVE</span>
+                    <span className="opacity-0">CREATIVE</span>
+                  </>
+                ) : 'CREATIVE'}
               </motion.span>
               <br />
               <motion.span
-                className="inline-block"
+                className="inline-block relative"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
               >
-                TECHNOLOGIST
+                {glitch.t ? (
+                  <>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaRed)', mixBlendMode: 'lighten', animation: 'rgbGlitchRed 300ms linear infinite' }}>TECHNOLOGIST</span>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaGreen)', mixBlendMode: 'lighten', animation: 'rgbGlitchGreen 300ms linear infinite' }}>TECHNOLOGIST</span>
+                    <span className="absolute top-0 left-0" style={{ filter: 'url(#alphaBlue)', mixBlendMode: 'lighten', animation: 'rgbGlitchBlue 300ms linear infinite' }}>TECHNOLOGIST</span>
+                    <span className="opacity-0">TECHNOLOGIST</span>
+                  </>
+                ) : 'TECHNOLOGIST'}
               </motion.span>
             </h1>
 
@@ -285,16 +342,37 @@ export default function PortfolioPage() {
                 FEATURED PROJECTS
               </h2>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-80px' }}
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.12 } },
+              }}
+            >
               {projects.map((project, index) => (
-                <BentoCard
+                <motion.div
                   key={project.id}
-                  {...project}
-                  index={index + 1}
-                  onClick={() => handleProjectClick(project)}
-                />
+                  variants={{
+                    hidden: { opacity: 0, y: 60, scale: 0.94, rotateX: 8 },
+                    show: {
+                      opacity: 1, y: 0, scale: 1, rotateX: 0,
+                      transition: { type: 'spring', stiffness: 90, damping: 16 },
+                    },
+                  }}
+                  style={{ transformPerspective: 1000 }}
+                  className={project.size === 'tall' ? 'md:row-span-2' : 'md:col-span-2'}
+                >
+                  <BentoCard
+                    {...project}
+                    index={index + 1}
+                    onClick={() => handleProjectClick(project)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 

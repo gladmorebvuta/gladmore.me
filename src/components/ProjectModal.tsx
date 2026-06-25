@@ -140,20 +140,11 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
 
               {/* A. THE HERO (Top) */}
               <div className="relative w-full aspect-video overflow-hidden">
-                {project.liveUrl ? (
-                  <iframe
-                    src={project.liveUrl}
-                    className="w-full h-full border-0 pointer-events-auto"
-                    title={project.title}
-                    loading="lazy"
-                  />
-                ) : (
-                  <ImageWithFallback
-                    src={project.imageUrl}
-                    alt={project.title}
-                    className="w-full h-full object-cover"
-                  />
-                )}
+                <ImageWithFallback
+                  src={project.imageUrl}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               {/* Title Bar (Below Image) */}

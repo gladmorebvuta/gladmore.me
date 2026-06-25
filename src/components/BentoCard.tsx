@@ -45,22 +45,13 @@ export function BentoCard({
       onClick={onClick}
       className={`${sizeClasses[size]} group relative cursor-pointer overflow-hidden rounded-2xl`}
     >
-      {/* Background Image/Iframe - Always visible, sharp and clear, with stable aspect ratio */}
+      {/* Background Image - Always visible, sharp and clear, with stable aspect ratio */}
       <div className="absolute inset-0 bg-white/5">
-        {liveUrl ? (
-          <iframe
-            src={liveUrl}
-            className="w-full h-full border-0 pointer-events-none object-cover"
-            title={title}
-            loading="lazy"
-          />
-        ) : (
-          <ImageWithFallback
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover"
-          />
-        )}
+        <ImageWithFallback
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Glassmorphism Overlay - Slides down on hover */}

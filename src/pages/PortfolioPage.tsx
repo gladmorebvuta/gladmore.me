@@ -34,6 +34,7 @@ interface Project {
   solution?: string;
   features?: string[];
   status?: string;
+  liveUrl?: string;
 }
 
 export default function PortfolioPage() {
@@ -106,6 +107,9 @@ export default function PortfolioPage() {
       solution: project.solution,
       specs: project.specs,
       gallery: project.gallery,
+      features: project.features,
+      status: project.status,
+      liveUrl: project.liveUrl,
     };
     setSelectedProject(transformedProject);
     setIsModalOpen(true);
@@ -394,13 +398,16 @@ export default function PortfolioPage() {
                 </h2>
                 <div className="space-y-6">
                   <p className="font-sans text-white/70 leading-relaxed">
-                    I am <strong className="text-white/90">Gladmore Bvuta</strong>, a multidisciplinary Brand Architect with 6 years of experience fusing creative direction, business strategy, and cutting-edge web development.
+                    I am <strong className="text-white/90">Gladmore Bvuta</strong>, a Creative Technologist with 6 years of experience fusing brand strategy, product design, and full-stack engineering — the rare hybrid who can both <span className="text-white/90">design the identity</span> and <span className="text-white/90">ship the software</span>.
                   </p>
                   <p className="font-sans text-white/70 leading-relaxed">
-                    My journey is defined by self-directed learning and hands-on experimentation. From designing compelling brand systems to building responsive digital platforms, I bring a unique perspective that blends aesthetics with functionality.
+                    As founder of <strong className="text-white/90">Brandapt</strong>, a hybrid venture studio, I design and ship production products end-to-end — from brand systems and UX to deployed infrastructure. I've taken four real ventures live across Africa and beyond: <span className="text-white/90">Zoranta</span>, <span className="text-white/90">Luminery</span>, <span className="text-white/90">Brandapt OS</span>, and <span className="text-white/90">Pamhepo</span> (in closed beta).
                   </p>
                   <p className="font-sans text-white/70 leading-relaxed">
-                    I believe the best solutions emerge when creative vision meets technical execution — and that's where I thrive.
+                    My edge is being <strong className="text-white/90">AI-native</strong>: I build with Claude Code, multi-agent orchestration, and MCP — compressing what used to take a team into work I can architect, ship, and maintain solo, on React, TypeScript, and Firebase.
+                  </p>
+                  <p className="font-sans text-white/70 leading-relaxed">
+                    Self-directed from day one, I believe the best products emerge where creative vision meets technical execution — and that's exactly where I operate.
                   </p>
                 </div>
               </motion.div>

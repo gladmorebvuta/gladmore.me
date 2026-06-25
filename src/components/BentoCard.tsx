@@ -1,6 +1,7 @@
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 
 interface BentoCardProps {
   id: string;
@@ -12,6 +13,7 @@ interface BentoCardProps {
   size: 'wide' | 'tall';
   index: number;
   status?: string;
+  liveUrl?: string;
   onClick: () => void;
 }
 
@@ -24,6 +26,7 @@ export function BentoCard({
   size,
   index,
   status,
+  liveUrl,
   onClick
 }: BentoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -130,6 +133,21 @@ export function BentoCard({
           }}
         />
       </motion.div>
+
+      {/* Live site link — opens the real domain in a new tab */}
+      {liveUrl && (
+        <a
+          href={liveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Visit ${title} live site`}
+          className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 backdrop-blur-xl border border-white/15 hover:border-cyan-400/60 rounded-full text-white/80 hover:text-cyan-400 transition-colors duration-300"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span className="font-mono text-[10px] tracking-wider uppercase">Live</span>
+        </a>
+      )}
 
       {/* Status Badge */}
       {status && (

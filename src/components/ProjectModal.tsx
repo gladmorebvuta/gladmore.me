@@ -1,4 +1,4 @@
-import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ZoomIn, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ interface ProjectModalProps {
     gallery?: { thumbnail: string; full: string }[];
     features?: string[];
     status?: string;
+    liveUrl?: string;
   } | null;
 }
 
@@ -171,6 +172,22 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                     <span>{project.role}</span>
                   </div>
                 </div>
+
+                {/* Live site CTA — links to the real production domain */}
+                {project.liveUrl && (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 inline-flex items-center gap-2 px-5 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/40 hover:border-cyan-400/70 rounded-full text-cyan-400 font-sans font-semibold tracking-wide transition-all duration-300"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Visit Live Site</span>
+                    <span className="font-mono text-white/50 text-sm">
+                      {project.liveUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    </span>
+                  </a>
+                )}
               </div>
 
               {/* B. THE STRATEGY ENGINE (Middle) - 2 Column Grid */}

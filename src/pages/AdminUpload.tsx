@@ -33,6 +33,7 @@ interface ProjectData {
   gallery: { thumbnail: string; full: string }[];
   features?: string[];
   status?: string;
+  liveUrl?: string;
 }
 
 export default function AdminUpload() {
@@ -65,6 +66,7 @@ export default function AdminUpload() {
     gallery: [],
     features: [],
     status: '',
+    liveUrl: '',
   });
   const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -106,6 +108,7 @@ export default function AdminUpload() {
           gallery: data.gallery || [],
           features: data.features || [],
           status: data.status || '',
+          liveUrl: data.liveUrl || '',
         };
       }) as ProjectData[];
       setProjects(projectsData);
@@ -158,6 +161,7 @@ export default function AdminUpload() {
         gallery: [],
         features: [],
         status: '',
+        liveUrl: '',
       });
       setIsSaving(false);
     } catch (error) {
@@ -258,6 +262,7 @@ export default function AdminUpload() {
         gallery: [],
         features: [],
         status: '',
+        liveUrl: '',
       },
       ...project,
       specs: {
@@ -619,6 +624,20 @@ export default function AdminUpload() {
                   onChange={(e) => setCurrentProject({ ...currentProject, status: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors"
                   placeholder="e.g., IN DEVELOPMENT"
+                />
+              </div>
+
+              {/* Live URL */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  LIVE SITE URL
+                </label>
+                <input
+                  type="text"
+                  value={currentProject.liveUrl || ''}
+                  onChange={(e) => setCurrentProject({ ...currentProject, liveUrl: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-mono text-sm focus:border-cyan-400/50 focus:outline-none transition-colors"
+                  placeholder="https://example.com"
                 />
               </div>
             </div>

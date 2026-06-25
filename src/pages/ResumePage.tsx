@@ -1,11 +1,12 @@
 import { ArrowLeft, Download } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'motion/react';
-import { navigate } from '../App';
+import { useNavigate } from 'react-router-dom';
 import { Resume } from '../components/Resume';
 import { GlowOrb } from '../components/GlowOrb';
 import { GridLines } from '../components/GridLines';
 
 export function ResumePage() {
+  const navigate = useNavigate();
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);

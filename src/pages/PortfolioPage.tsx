@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BentoCard } from '../components/BentoCard';
 import { Navbar } from '../components/Navbar';
 import { ProjectModal } from '../components/ProjectModal';
@@ -7,9 +8,8 @@ import { CustomCursor } from '../components/CustomCursor';
 import { MagneticButton } from '../components/MagneticButton';
 import { ArrowRight, MapPin, Send } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'motion/react';
-import { navigate } from '../App';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 // Define the type for a single project
 interface Project {
@@ -32,17 +32,17 @@ interface Project {
   gallery: { thumbnail: string; full: string }[];
   challenge?: string;
   solution?: string;
+  features?: string[];
+  status?: string;
 }
 
 export default function PortfolioPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [isMobile, setIsMobile] = useState(false);
-  const [distortCreative, setDistortCreative] = useState(false);
-  const [distortBusiness, setDistortBusiness] = useState(false);
-  const isHeroInViewRef = useRef(true); // Default to true so it plays on first load
 
   const heroRef = useRef<HTMLElement>(null);
   const workRef = useRef<HTMLElement>(null);
@@ -54,14 +54,15 @@ export default function PortfolioPage() {
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
 
   useEffect(() => {
-    const projectsCollection = collection(db, "projects");
-    const q = query(projectsCollection, orderBy("order"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const fetchProjects = async () => {
+      const projectsCollection = collection(db, "projects");
+      const q = query(projectsCollection, orderBy("order"));
+      const snapshot = await getDocs(q);
       const projectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Project[];
       setProjects(projectsData);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchProjects();
   }, []);
 
   const handleProjectClick = (project: Project) => {
@@ -131,80 +132,22 @@ export default function PortfolioPage() {
       setIsMobile(window.innerWidth < 768);
     };
 
-    let creativeTimeout: NodeJS.Timeout;
-    let businessTimeout: NodeJS.Timeout;
-
-    const triggerCreativeGlitch = () => {
-      const randomDelay = Math.random() * 4000 + 2000;
-      creativeTimeout = setTimeout(() => {
-        if (isHeroInViewRef.current) { // Only animate if hero is in view
-          setDistortCreative(true);
-          setTimeout(() => setDistortCreative(false), 400);
-        }
-        triggerCreativeGlitch(); // Recurse
-      }, randomDelay);
-    };
-
-    const triggerBusinessGlitch = () => {
-      const randomDelay = Math.random() * 4000 + 2000;
-      businessTimeout = setTimeout(() => {
-        if (isHeroInViewRef.current) { // Only animate if hero is in view
-          setDistortBusiness(true);
-          setTimeout(() => setDistortBusiness(false), 400);
-        }
-        triggerBusinessGlitch(); // Recurse
-      }, randomDelay);
-    };
-    
-    // Intersection Observer to track hero section visibility
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isHeroInViewRef.current = entry.isIntersecting;
-      },
-      { threshold: 0.1 } // Trigger when 10% of the element is visible
-    );
-
-    const currentHeroRef = heroRef.current;
-    if (currentHeroRef) {
-      observer.observe(currentHeroRef);
-    }
-
     // Initialize animations and event listeners
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', checkMobile);
     checkMobile();
     handleScroll();
-    triggerCreativeGlitch();
-    triggerBusinessGlitch();
 
     return () => {
       // Cleanup
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', checkMobile);
-      if (currentHeroRef) {
-        observer.unobserve(currentHeroRef);
-      }
-      clearTimeout(creativeTimeout);
-      clearTimeout(businessTimeout);
     };
-  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+  }, []);
 
 
   return (
     <div className="h-full bg-[#0a0a0a] text-white overflow-x-hidden relative pb-[5.5rem]">
-      <svg className="absolute w-0 h-0 pointer-events-none">
-        <defs>
-          <filter id="alphaRed">
-            <feColorMatrix mode="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
-          </filter>
-          <filter id="alphaGreen">
-            <feColorMatrix mode="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
-          </filter>
-          <filter id="alphaBlue">
-            <feColorMatrix mode="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
-          </filter>
-        </defs>
-      </svg>
 
       {!isMobile && <CustomCursor />}
       
@@ -214,110 +157,33 @@ export default function PortfolioPage() {
       
       <GridLines />
       
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-[1]">
-        <motion.div
-          className="absolute w-[400px] h-[600px] rounded-full blur-[80px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.06) 0%, rgba(219, 39, 119, 0.04) 50%, transparent 100%)',
-            left: '10%',
-          }}
-          animate={{
-            y: [-150, 200, -100, -150],
-            scale: [1, 1.3, 0.9, 1],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        <motion.div
-          className="absolute w-[450px] h-[650px] rounded-full blur-[85px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, rgba(8, 145, 178, 0.05) 50%, transparent 100%)',
-            left: '25%',
-          }}
-          animate={{
-            y: [100, -200, 150, 100],
-            scale: [1.2, 0.9, 1.3, 1.2],
-          }}
-          transition={{
-            duration: 28,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        <motion.div
-          className="absolute w-[420px] h-[620px] rounded-full blur-[82px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(251, 146, 60, 0.05) 0%, rgba(249, 115, 22, 0.03) 50%, transparent 100%)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-          animate={{
-            y: [-100, 180, -120, -100],
-            scale: [1.1, 0.85, 1.4, 1.1],
-          }}
-          transition={{
-            duration: 30,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        <motion.div
-          className="absolute w-[480px] h-[680px] rounded-full blur-[90px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(124, 58, 237, 0.07) 0%, rgba(109, 40, 217, 0.04) 50%, transparent 100%)',
-            right: '25%',
-          }}
-          animate={{
-            y: [150, -150, 200, 150],
-            scale: [0.9, 1.5, 1, 0.9],
-          }}
-          transition={{
-            duration: 32,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        <motion.div
-          className="absolute w-[380px] h-[580px] rounded-full blur-[78px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(132, 204, 22, 0.06) 0%, rgba(101, 163, 13, 0.04) 50%, transparent 100%)',
-            right: '10%',
-          }}
-          animate={{
-            y: [80, -180, 160, 80],
-            scale: [1, 1.3, 0.9, 1],
-          }}
-          transition={{
-            duration: 27,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        <motion.div
-          className="absolute w-[350px] h-[550px] rounded-full blur-[75px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(250, 204, 21, 0.05) 0%, rgba(234, 179, 8, 0.03) 50%, transparent 100%)',
-            right: '5%',
-          }}
-          animate={{
-            y: [-120, 150, -80, -120],
-            scale: [1.1, 0.9, 1.2, 1.1],
-          }}
-          transition={{
-            duration: 26,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      </div>
+      {!isMobile && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-[1]">
+          <motion.div
+            className="absolute inset-0 rounded-full blur-[120px]"
+            style={{
+              background: `radial-gradient(ellipse at 30% 50%, rgba(236, 72, 153, 0.08) 0%,
+                                          rgba(6, 182, 212, 0.05) 25%,
+                                          rgba(124, 58, 237, 0.06) 50%,
+                                          transparent 100%)`,
+            }}
+            animate={
+              typeof window !== 'undefined' &&
+              window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+                ? {
+                    y: [0, 40, -40, 0],
+                    scale: [1, 1.05, 0.95, 1],
+                  }
+                : {}
+            }
+            transition={{
+              duration: 40,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </div>
+      )}
 
       {!isMobile && (
         <Navbar 
@@ -354,108 +220,31 @@ export default function PortfolioPage() {
               </p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
+            <h1
+              className="font-sans font-extrabold text-white tracking-tight leading-[0.9] mb-8"
+              style={{
+                fontSize: 'clamp(3rem, 12vw, 9rem)',
+                textTransform: 'uppercase',
+              }}
             >
-              <h1 
-                className="font-sans font-extrabold text-white tracking-tight leading-[0.9] mb-8"
-                style={{ 
-                  fontSize: 'clamp(3rem, 12vw, 9rem)',
-                  textTransform: 'uppercase',
-                }}
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
               >
-                <span 
-                  className="inline-block relative"
-                  style={{ position: 'relative' }}
-                >
-                  {distortCreative ? (
-                    <>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaRed)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchRed 300ms linear infinite'
-                        }}
-                      >
-                        CREATIVE
-                      </span>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaGreen)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchGreen 300ms linear infinite'
-                        }}
-                      >
-                        CREATIVE
-                      </span>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaBlue)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchBlue 300ms linear infinite'
-                        }}
-                      >
-                        CREATIVE
-                      </span>
-                      <span className="opacity-0">CREATIVE</span>
-                    </>
-                  ) : (
-                    'CREATIVE'
-                  )}
-                </span>
-                <br />
-                BRANDING<br />
-                <span 
-                  className="inline-block relative"
-                  style={{ position: 'relative' }}
-                >
-                  {distortBusiness ? (
-                    <>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaRed)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchRed 300ms linear infinite'
-                        }}
-                      >
-                        + BUSINESS
-                      </span>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaGreen)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchGreen 300ms linear infinite'
-                        }}
-                      >
-                        + BUSINESS
-                      </span>
-                      <span 
-                        className="absolute top-0 left-0"
-                        style={{ 
-                          filter: 'url(#alphaBlue)',
-                          mixBlendMode: 'lighten',
-                          animation: 'rgbGlitchBlue 300ms linear infinite'
-                        }}
-                      >
-                        + BUSINESS
-                      </span>
-                      <span className="opacity-0">+ BUSINESS</span>
-                    </>
-                  ) : (
-                    '+ BUSINESS'
-                  )}
-                </span>
-                <br />
-                TECHNOLOGY
-              </h1>
-            </motion.div>
+                CREATIVE
+              </motion.span>
+              <br />
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
+              >
+                TECHNOLOGIST
+              </motion.span>
+            </h1>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -697,11 +486,11 @@ export default function PortfolioPage() {
               className="pt-12 border-t border-white/10"
             >
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-gray-500">
-                <p 
+                <p
                   className="tracking-wider"
                   style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem' }}
                 >
-                  © 2025 GLADMORE BVUTA
+                  © {new Date().getFullYear()} GLADMORE BVUTA
                 </p>
 
                 <p 

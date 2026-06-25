@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Upload, X, Plus, Save, LogOut, Image as ImageIcon } from 'lucide-react';
-import { navigate } from '../App';
 import imageCompression from 'browser-image-compression';
 
 interface ProjectData {
@@ -31,9 +31,12 @@ interface ProjectData {
     deliverables: string;
   };
   gallery: { thumbnail: string; full: string }[];
+  features?: string[];
+  status?: string;
 }
 
 export default function AdminUpload() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [currentProject, setCurrentProject] = useState<ProjectData>({
     id: '',
@@ -60,6 +63,8 @@ export default function AdminUpload() {
       deliverables: '',
     },
     gallery: [],
+    features: [],
+    status: '',
   });
   const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -99,6 +104,8 @@ export default function AdminUpload() {
             deliverables: data.specs?.deliverables || '',
           },
           gallery: data.gallery || [],
+          features: data.features || [],
+          status: data.status || '',
         };
       }) as ProjectData[];
       setProjects(projectsData);
@@ -149,6 +156,8 @@ export default function AdminUpload() {
           deliverables: '',
         },
         gallery: [],
+        features: [],
+        status: '',
       });
       setIsSaving(false);
     } catch (error) {
@@ -247,6 +256,8 @@ export default function AdminUpload() {
           deliverables: '',
         },
         gallery: [],
+        features: [],
+        status: '',
       },
       ...project,
       specs: {
@@ -286,6 +297,8 @@ export default function AdminUpload() {
         deliverables: '',
       },
       gallery: [],
+      features: [],
+      status: '',
     });
   };
 
@@ -594,6 +607,20 @@ export default function AdminUpload() {
                   placeholder="Describe the key decisions made..."
                 />
               </div>
+
+              {/* Status */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  STATUS (e.g., "IN DEVELOPMENT", "CLOSED BETA")
+                </label>
+                <input
+                  type="text"
+                  value={currentProject.status}
+                  onChange={(e) => setCurrentProject({ ...currentProject, status: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors"
+                  placeholder="e.g., IN DEVELOPMENT"
+                />
+              </div>
             </div>
 
             {/* Description */}
@@ -635,6 +662,19 @@ export default function AdminUpload() {
                   onChange={(e) => setCurrentProject({ ...currentProject, solution: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors h-24"
                   placeholder="Describe the solution..."
+                />
+              </div>
+
+              {/* Features */}
+              <div className="mb-4">
+                <label className="font-mono text-white/60 text-xs tracking-wider mb-2 block">
+                  FEATURES (one per line, e.g. "Feature name · capability")
+                </label>
+                <textarea
+                  value={currentProject.features?.join('\n') || ''}
+                  onChange={(e) => setCurrentProject({ ...currentProject, features: e.target.value.split('\n').filter(f => f.trim()) })}
+                  className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white font-sans focus:border-cyan-400/50 focus:outline-none transition-colors h-24"
+                  placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
                 />
               </div>
             </div>

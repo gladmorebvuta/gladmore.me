@@ -4,18 +4,15 @@ import { useIsMobile } from '../components/ui/use-mobile';
 export function CustomCursor() {
   const isMobile = useIsMobile();
 
-  if (isMobile) {
-    return null;
-  }
-  
   const circleRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
   const cursorPosition = useRef({ x: 0, y: 0 });
   const circlePosition = useRef({ x: 0, y: 0 });
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
   const isHovering = useRef(false);
 
   useEffect(() => {
+    if (isMobile) return;
     const handleMouseMove = (e: MouseEvent) => {
       cursorPosition.current = { x: e.clientX, y: e.clientY };
 
@@ -59,6 +56,10 @@ export function CustomCursor() {
       }
     };
   }, []);
+
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <>

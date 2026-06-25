@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { Home, Briefcase, User, Mail, FileText } from 'lucide-react';
 
 interface NavbarProps {
@@ -7,6 +8,19 @@ interface NavbarProps {
 }
 
 export function Navbar({ onNavigate, activeSection }: NavbarProps) {
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      setScrollProgress(scrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const navItems = [
     { icon: Home, label: 'Home', id: 'hero' },
     { icon: Briefcase, label: 'Work', id: 'work' },
@@ -17,6 +31,9 @@ export function Navbar({ onNavigate, activeSection }: NavbarProps) {
 
   return (
     <>
+      {/* Scroll Progress Indicator */}
+      <div className="fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent z-[51]" style={{ width: `${scrollProgress}%` }} />
+
       {/* Desktop Navbar - Top */}
       <motion.nav
         initial={{ y: -100, opacity: 0 }}

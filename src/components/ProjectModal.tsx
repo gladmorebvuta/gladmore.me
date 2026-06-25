@@ -21,6 +21,8 @@ interface ProjectModalProps {
     solution?: string;
     specs?: Record<string, string>;
     gallery?: { thumbnail: string; full: string }[];
+    features?: string[];
+    status?: string;
   } | null;
 }
 
@@ -51,23 +53,29 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     setSelectedImageIndex((selectedImageIndex - 1 + project.gallery.length) % project.gallery.length);
   };
 
-  // Keyboard navigation
+  // Keyboard navigation (ESC closes entire modal, arrows navigate lightbox)
   useEffect(() => {
-    if (selectedImageIndex === null) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        goToNextImage();
-      } else if (e.key === 'ArrowLeft') {
-        goToPreviousImage();
-      } else if (e.key === 'Escape') {
-        setSelectedImageIndex(null);
+      if (e.key === 'Escape') {
+        if (selectedImageIndex !== null) {
+          setSelectedImageIndex(null);
+        } else if (isOpen) {
+          onClose();
+        }
+      } else if (selectedImageIndex !== null) {
+        if (e.key === 'ArrowRight') {
+          goToNextImage();
+        } else if (e.key === 'ArrowLeft') {
+          goToPreviousImage();
+        }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImageIndex, project]);
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [selectedImageIndex, isOpen, project, onClose]);
 
   // Touch swipe detection
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -142,9 +150,19 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
               <div className="px-8 py-6 border-b border-white/10">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                   {/* Left: Project Title */}
-                  <h2 className="font-sans font-extrabold tracking-tight text-white text-3xl">
-                    {project.title}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-sans font-extrabold tracking-tight text-white text-3xl">
+                      {project.title}
+                    </h2>
+                    {/* Status Badge */}
+                    {project.status && (
+                      <div className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-400/30 rounded-full">
+                        <span className="font-mono text-cyan-400 text-xs tracking-wider uppercase">
+                          {project.status}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Right: Metadata Pill */}
                   <div className="font-mono text-white/60 text-xs tracking-wider flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full">
@@ -243,6 +261,25 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                   )}
                 </div>
 
+                {/* UNIQUE FEATURES & IMPACT Section */}
+                {project.features && project.features.length > 0 && (
+                  <div className="mb-12 pt-8 border-t border-white/10">
+                    <p className="font-mono text-cyan-400/80 mb-6 tracking-widest text-xs">
+                      // UNIQUE FEATURES & IMPACT
+                    </p>
+                    <ul className="space-y-3">
+                      {project.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="text-cyan-400 font-bold mt-1 flex-shrink-0">→</span>
+                          <p className="font-sans text-white/70 leading-relaxed text-sm">
+                            {feature}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Tags */}
                 {project.tags && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-12">
@@ -325,7 +362,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                 {/* Image Counter */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full">
                   <span className="font-mono text-xs text-white/60">
-                    {selectedImageIndex + 1} / {project.gallery.length}
+                    {selectedImageIndex + 1} / {project.gallery!.length}
                   </span>
                 </div>
 
@@ -342,7 +379,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                   onTouchEnd={onTouchEnd}
                 >
                   <ImageWithFallback
-                    src={project.gallery[selectedImageIndex].full}
+                    src={project.gallery![selectedImageIndex].full}
                     alt="Full size view"
                     className="max-h-screen w-auto object-contain rounded-lg border border-white/20"
                   />

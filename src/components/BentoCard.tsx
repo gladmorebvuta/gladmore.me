@@ -11,17 +11,19 @@ interface BentoCardProps {
   image: string;
   size: 'wide' | 'tall';
   index: number;
+  status?: string;
   onClick: () => void;
 }
 
-export function BentoCard({ 
-  title, 
+export function BentoCard({
+  title,
   label,
-  category, 
+  category,
   tech,
-  image, 
+  image,
   size,
   index,
+  status,
   onClick
 }: BentoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -40,8 +42,8 @@ export function BentoCard({
       onClick={onClick}
       className={`${sizeClasses[size]} group relative cursor-pointer overflow-hidden rounded-2xl`}
     >
-      {/* Background Image - Always visible, sharp and clear */}
-      <div className="absolute inset-0">
+      {/* Background Image - Always visible, sharp and clear, with stable aspect ratio */}
+      <div className="absolute inset-0 bg-white/5">
         <ImageWithFallback
           src={image}
           alt={title}
@@ -50,15 +52,15 @@ export function BentoCard({
       </div>
 
       {/* Glassmorphism Overlay - Slides down on hover */}
-      <motion.div 
+      <motion.div
         className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 group-hover:border-cyan-400/50 transition-colors duration-500 flex flex-col items-center justify-center px-6"
-        animate={{ 
+        animate={{
           top: isHovered ? '60%' : '0%'
         }}
-        transition={{ 
-          type: 'tween',
-          duration: 0.5,
-          ease: [0.4, 0, 0.2, 1]
+        transition={{
+          type: 'spring',
+          damping: 20,
+          stiffness: 100
         }}
       >
         {/* Top Marker Triangle - only visible in default state */}
@@ -106,10 +108,37 @@ export function BentoCard({
       {/* Bottom Marker Pill */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-white/20 group-hover:bg-cyan-400/40 transition-colors duration-500 pointer-events-none z-10" />
 
-      {/* Hover Glow Effect */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl">
+      {/* Hover Glow Effect - Premium sheen sweep */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-2xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isHovered ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        style={{ pointerEvents: 'none' }}
+      >
         <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_60px_rgba(34,211,238,0.2)]" />
-      </div>
+        {/* Subtle sheen on hover */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent"
+          animate={{
+            x: isHovered ? ['-100%', '100%'] : '-100%'
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: isHovered ? Infinity : 0,
+            ease: 'easeInOut'
+          }}
+        />
+      </motion.div>
+
+      {/* Status Badge */}
+      {status && (
+        <div className="absolute top-4 left-4 z-20 px-3 py-1.5 bg-black/80 backdrop-blur-xl border border-cyan-400/50 rounded-full">
+          <span className="font-mono text-cyan-400 text-xs tracking-wider uppercase">
+            {status}
+          </span>
+        </div>
+      )}
 
     </div>
   );

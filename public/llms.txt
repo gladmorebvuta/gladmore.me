@@ -1,0 +1,24 @@
+# Gladmore Bvuta — Creative Brand Technologist
+
+## Who
+Gladmore Tinashe Bvuta is a Creative Technologist based in Harare, Zimbabwe. He specializes in bridging visual identity and digital infrastructure, focusing on Intelligent Construction, Brand Systems, and Next.js Architecture.
+
+## What
+This portfolio showcases Gladmore's work across brand strategy, product design, and technical implementation. Projects span venture studio building (Brandapt), mobile development (Pamhepo, Chenji), and specialized solutions (NFC Card, MCP servers).
+
+## Key Areas
+- Brand Architecture & System Design
+- Next.js & React Development
+- Firebase Infrastructure
+- Generative AI Integration
+- Business Technology
+
+## Site Structure
+- **Work** — case studies and project showcases
+- **About** — background and methodology
+- **Resume** — detailed CV and experience
+- **Contact** — ways to get in touch
+
+---
+
+Generated for AI indexing and discovery. Last updated: 2026-06-25.

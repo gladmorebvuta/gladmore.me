@@ -1,0 +1,12 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="64" height="64" fill="#0f172a"/>
+
+  <!-- Monogram "G" -->
+  <g fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outer arc of G -->
+    <path d="M 48 16 A 16 16 0 0 0 16 32 A 16 16 0 0 0 32 48"/>
+    <!-- Horizontal bar -->
+    <line x1="32" y1="32" x2="48" y2="32"/>
+  </g>
+</svg>
